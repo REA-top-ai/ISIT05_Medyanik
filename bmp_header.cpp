@@ -154,24 +154,3 @@ private:
         return 0.299 * red + 0.587 * green + 0.114 * blue;
     }
 };
-
-int main(const int argc, char** argv) {
-    const char* path = argc > 1 ? argv[1] : "image.bmp";
-
-    BmpImage image;
-
-    if (!image.load(path)) {
-        return 1;
-    }
-
-    image.print_headers();
-    std::cout << std::endl;
-    std::cout << "============ CORNER PIXELS ===========" << std::endl;
-    image.print_pixel("Top left    ", 0,                     0);
-    image.print_pixel("Top right   ", image.get_width() - 1,  0);
-    image.print_pixel("Bottom left ", 0,                     image.get_height() - 1);
-    image.print_pixel("Bottom right", image.get_width() - 1,  image.get_height() - 1);
-    std::cout << "======================================" << std::endl;
-
-    return 0;
-}
