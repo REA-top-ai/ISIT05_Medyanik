@@ -1,32 +1,34 @@
 module;
 
 #include <array>
-#include <cstdint>
 #include <string>
 
 export module bmp;
 
 import image;
 
+static_assert(sizeof(short) == 2 && sizeof(int) == 4,
+              "BMPHeader рассчитан на short = 2 байта и int = 4 байта");
+
 #pragma pack(push, 1)
 export struct BMPHeader {
     char signature[2];
-    std::uint32_t file_size;
-    std::uint16_t reserved1;
-    std::uint16_t reserved2;
-    std::uint32_t data_offset;
+    unsigned int file_size;
+    unsigned short reserved1;
+    unsigned short reserved2;
+    unsigned int data_offset;
 
-    std::uint32_t dib_header_size;
-    std::int32_t width;
-    std::int32_t height;
-    std::uint16_t planes;
-    std::uint16_t bits_per_pixel;
-    std::uint32_t compression;
-    std::uint32_t image_size;
-    std::int32_t x_pixels_per_meter;
-    std::int32_t y_pixels_per_meter;
-    std::uint32_t colors_used;
-    std::uint32_t colors_important;
+    unsigned int dib_header_size;
+    int width;
+    int height;
+    unsigned short planes;
+    unsigned short bits_per_pixel;
+    unsigned int compression;
+    unsigned int image_size;
+    int x_pixels_per_meter;
+    int y_pixels_per_meter;
+    unsigned int colors_used;
+    unsigned int colors_important;
 };
 #pragma pack(pop)
 
@@ -51,5 +53,5 @@ public:
 private:
     std::string path_;
     BMPHeader header_{};
-    std::array<std::uint32_t, 3> color_masks_{};
+    std::array<unsigned int, 3> color_masks_{};
 };

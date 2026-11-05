@@ -1,14 +1,10 @@
-module;
-
-#include <cstdint>
-
 module utils;
 
 int get_brightness(int red, int green, int blue) {
     return static_cast<int>(0.299 * red + 0.587 * green + 0.114 * blue);
 }
 
-int extract_channel(std::uint32_t value, std::uint32_t mask) {
+int extract_channel(unsigned int value, unsigned int mask) {
     if (mask == 0) {
         return 0;
     }
@@ -18,8 +14,8 @@ int extract_channel(std::uint32_t value, std::uint32_t mask) {
         ++shift;
     }
 
-    const std::uint32_t max_value = mask >> shift;
-    const std::uint32_t channel = (value & mask) >> shift;
+    const unsigned int max_value = mask >> shift;
+    const unsigned int channel = (value & mask) >> shift;
 
-    return static_cast<int>((static_cast<std::uint64_t>(channel) * 255U) / max_value);
+    return static_cast<int>((static_cast<unsigned long long>(channel) * 255U) / max_value);
 }

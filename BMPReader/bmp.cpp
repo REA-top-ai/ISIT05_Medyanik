@@ -1,11 +1,10 @@
 module;
 
-#include <cstdint>
+#include <array>
 #include <fstream>
 #include <iostream>
 #include <limits>
 #include <string>
-#include <utility>
 
 module bmp;
 
@@ -13,12 +12,18 @@ import utils;
 import errors;
 
 namespace {
-constexpr std::uint32_t BI_RGB = 0;
-constexpr std::uint32_t BI_BITFIELDS = 3;
-constexpr std::uint32_t BI_ALPHABITFIELDS = 6;
+constexpr unsigned int BI_RGB = 0;
+constexpr unsigned int BI_BITFIELDS = 3;
+constexpr unsigned int BI_ALPHABITFIELDS = 6;
 
-bool masks_are_valid(const std::array<std::uint32_t, 3>& masks) {
+constexpr unsigned int MASK_16_BIT_LIMIT = 0xFFFF0000U;
+
+bool masks_are_valid(const std::array<unsigned int, 3>& masks) {
     if (masks[0] == 0 || masks[1] == 0 || masks[2] == 0) {
+        return false;
+    }
+
+    if (((masks[0] | masks[1] | masks[2]) & MASK_16_BIT_LIMIT) != 0) {
         return false;
     }
 
@@ -63,14 +68,14 @@ void BMP::open(const char* path) {
         throw FormatError("Поддерживаются BMP-заголовки DIB размером не менее 40 байт");
     }
 
-    const std::uint64_t minimum_pixel_offset =
-        14ULL + static_cast<std::uint64_t>(new_header.dib_header_size);
+    const unsigned long long minimum_pixel_offset =
+        14ULL + static_cast<unsigned long long>(new_header.dib_header_size);
     if (new_header.data_offset < minimum_pixel_offset) {
         throw FormatError("Некорректное смещение данных пикселей");
     }
 
     if (new_header.width <= 0 || new_header.height == 0 ||
-        new_header.height == std::numeric_limits<std::int32_t>::min()) {
+        new_header.height == std::numeric_limits<int>::min()) {
         throw FormatError("Некорректные размеры изображения");
     }
 
@@ -78,8 +83,8 @@ void BMP::open(const char* path) {
         throw FormatError("Некорректное количество цветовых плоскостей BMP");
     }
 
-    const std::uint16_t bpp = new_header.bits_per_pixel;
-    const std::uint32_t compression = new_header.compression;
+    const unsigned short bpp = new_header.bits_per_pixel;
+    const unsigned int compression = new_header.compression;
 
     if (bpp != 16 && bpp != 24 && bpp != 32) {
         throw FormatError("Поддерживаются только BMP с глубиной цвета 16, 24 или 32 бита");
@@ -94,18 +99,17 @@ void BMP::open(const char* path) {
         throw FormatError("Для 24- и 32-битного BMP поддерживается только BI_RGB");
     }
 
-    std::array<std::uint32_t, 3> new_masks{};
+    std::array<unsigned int, 3> new_masks{};
 
     if (bpp == 16 && compression == BI_RGB) {
         new_masks = {0x7C00U, 0x03E0U, 0x001FU};
     } else if (bpp == 16 &&
                (compression == BI_BITFIELDS || compression == BI_ALPHABITFIELDS)) {
-        const std::streamoff masks_offset =
-            14 + static_cast<std::streamoff>(40);
+        constexpr long long masks_offset = 14 + 40;
 
         if (new_header.dib_header_size == 40) {
-            const std::uint64_t required =
-                static_cast<std::uint64_t>(masks_offset) + 12ULL;
+            const unsigned long long required =
+                static_cast<unsigned long long>(masks_offset) + 12ULL;
             if (new_header.data_offset < required) {
                 throw FormatError("В BMP отсутствуют RGB-маски перед пиксельными данными");
             }
@@ -170,7 +174,7 @@ void BMP::read_pixel(int x, int y, int& red, int& green, int& blue) const {
 
     const int image_width = header_.width;
     const int image_height = height();
-    const std::uint16_t bpp = header_.bits_per_pixel;
+    const unsigned short bpp = header_.bits_per_pixel;
 
     if (x < 0 || x >= image_width || y < 0 || y >= image_height) {
         throw PixelError("Координаты (" + std::to_string(x) + ", " + std::to_string(y) +
@@ -178,21 +182,21 @@ void BMP::read_pixel(int x, int y, int& red, int& green, int& blue) const {
                          std::to_string(image_height));
     }
 
-    const std::uint64_t row =
+    const unsigned long long row =
         header_.height > 0
-            ? static_cast<std::uint64_t>(image_height - 1 - y)
-            : static_cast<std::uint64_t>(y);
+            ? static_cast<unsigned long long>(image_height - 1 - y)
+            : static_cast<unsigned long long>(y);
 
-    const std::uint64_t bytes_per_pixel = bpp / 8;
-    const std::uint64_t row_size =
-        (static_cast<std::uint64_t>(image_width) * bpp + 31ULL) / 32ULL * 4ULL;
-    const std::uint64_t position =
-        static_cast<std::uint64_t>(header_.data_offset) +
+    const unsigned long long bytes_per_pixel = bpp / 8;
+    const unsigned long long row_size =
+        (static_cast<unsigned long long>(image_width) * bpp + 31ULL) / 32ULL * 4ULL;
+    const unsigned long long position =
+        static_cast<unsigned long long>(header_.data_offset) +
         row * row_size +
-        static_cast<std::uint64_t>(x) * bytes_per_pixel;
+        static_cast<unsigned long long>(x) * bytes_per_pixel;
 
-    if (position > static_cast<std::uint64_t>(
-                       std::numeric_limits<std::streamoff>::max())) {
+    if (position > static_cast<unsigned long long>(
+                       std::numeric_limits<long long>::max())) {
         throw PixelError("Слишком большое смещение пикселя");
     }
 
@@ -201,7 +205,7 @@ void BMP::read_pixel(int x, int y, int& red, int& green, int& blue) const {
         throw FileOpenError("Не удалось повторно открыть файл: " + path_);
     }
 
-    file.seekg(static_cast<std::streamoff>(position));
+    file.seekg(static_cast<long long>(position));
     if (!file) {
         throw PixelError("Не удалось перейти к данным пикселя");
     }
@@ -217,9 +221,9 @@ void BMP::read_pixel(int x, int y, int& red, int& green, int& blue) const {
     }
 
     if (bpp == 16) {
-        const std::uint32_t value =
-            static_cast<std::uint32_t>(pixel[0]) |
-            (static_cast<std::uint32_t>(pixel[1]) << 8U);
+        const unsigned int value =
+            static_cast<unsigned int>(pixel[0]) |
+            (static_cast<unsigned int>(pixel[1]) << 8U);
 
         red = extract_channel(value, color_masks_[0]);
         green = extract_channel(value, color_masks_[1]);
@@ -242,7 +246,7 @@ void BMP::print_pixel(const char* name, int x, int y) const {
     try {
         read_pixel(x, y, red, green, blue);
     } catch (const ImageError& e) {
-        std::cout << "не удалось прочитать пиксель (" << e.what() << ")\\n";
+        std::cout << "не удалось прочитать пиксель (" << e.what() << ")\n";
         return;
     }
 
