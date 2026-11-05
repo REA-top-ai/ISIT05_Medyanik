@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(ISIT05_Medyanik LANGUAGES CXX)
+project(BMPReader LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -14,7 +14,9 @@ add_executable(bmp_reader
 target_sources(bmp_reader
     PRIVATE
         FILE_SET CXX_MODULES FILES
+        errors.cppm
         utils.cppm
+        image.cppm
         bmp.cppm
 )
 

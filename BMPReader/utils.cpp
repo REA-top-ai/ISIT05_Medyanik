@@ -1,39 +1,25 @@
 module;
 
-#include <fstream>
+#include <cstdint>
 
 module utils;
 
-bool load_file_bytes(const char* path, unsigned char* buffer, int size) {
-    std::ifstream file(path, std::ios::binary);
-    if (!file) {
-        return false;
-    }
-    file.read(reinterpret_cast<char*>(buffer), size);
-    return true;
-}
-
-int bytes_to_int16(const unsigned char* bytes) {
-    return bytes[0] + bytes[1] * 256;
-}
-
-int bytes_to_int32(const unsigned char* bytes) {
-    return bytes[0] + bytes[1] * 256 + bytes[2] * 256 * 256 + bytes[3] * 256 * 256 * 256;
-}
-
 int get_brightness(int red, int green, int blue) {
-    return 0.299 * red + 0.587 * green + 0.114 * blue;
+    return static_cast<int>(0.299 * red + 0.587 * green + 0.114 * blue);
 }
 
-int extract_channel(unsigned int value, unsigned int mask) {
+int extract_channel(std::uint32_t value, std::uint32_t mask) {
     if (mask == 0) {
         return 0;
     }
-    int shift = 0;
-    while (((mask >> shift) & 1) == 0) {
-        shift++;
+
+    unsigned int shift = 0;
+    while (((mask >> shift) & 1U) == 0U) {
+        ++shift;
     }
-    unsigned int max_value = mask >> shift;
-    unsigned int channel = (value & mask) >> shift;
-    return channel * 255 / max_value;
+
+    const std::uint32_t max_value = mask >> shift;
+    const std::uint32_t channel = (value & mask) >> shift;
+
+    return static_cast<int>((static_cast<std::uint64_t>(channel) * 255U) / max_value);
 }

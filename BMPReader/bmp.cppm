@@ -1,42 +1,55 @@
 module;
 
+#include <array>
+#include <cstdint>
 #include <string>
 
 export module bmp;
 
-export class BMP {
+import image;
+
+#pragma pack(push, 1)
+export struct BMPHeader {
+    char signature[2];
+    std::uint32_t file_size;
+    std::uint16_t reserved1;
+    std::uint16_t reserved2;
+    std::uint32_t data_offset;
+
+    std::uint32_t dib_header_size;
+    std::int32_t width;
+    std::int32_t height;
+    std::uint16_t planes;
+    std::uint16_t bits_per_pixel;
+    std::uint32_t compression;
+    std::uint32_t image_size;
+    std::int32_t x_pixels_per_meter;
+    std::int32_t y_pixels_per_meter;
+    std::uint32_t colors_used;
+    std::uint32_t colors_important;
+};
+#pragma pack(pop)
+
+static_assert(sizeof(BMPHeader) == 54);
+
+export class BMP : public Image {
 public:
     BMP();
     explicit BMP(const char* path);
     BMP(const BMP& other);
     BMP(BMP&& other) noexcept;
-    ~BMP();
+    ~BMP() override;
 
-    bool open(const char* path);
-    void print_headers() const;
-    bool read_pixel(int x, int y, int& red, int& green, int& blue) const;
-    void print_pixel(const char* name, int x, int y) const;
-    int width() const { return width_; }
-    int height() const { return abs_height_; }
+    void open(const char* path) override;
+    void print_headers() const override;
+    void read_pixel(int x, int y, int& red, int& green, int& blue) const override;
+    void print_pixel(const char* name, int x, int y) const override;
+
+    int width() const override { return header_.width; }
+    int height() const override;
 
 private:
     std::string path_;
-    int file_size_ = 0;
-    int data_offset_ = 0;
-    int header_size_ = 0;
-    int width_ = 0;
-    int height_ = 0;
-    int planes_ = 0;
-    int bpp_ = 0;
-    int compression_ = 0;
-    int image_size_ = 0;
-    int x_pixels_per_m_ = 0;
-    int y_pixels_per_m_ = 0;
-    int colors_used_ = 0;
-    int colors_important_ = 0;
-    int abs_height_ = 0;
-
-    unsigned int red_mask_ = 0;
-    unsigned int green_mask_ = 0;
-    unsigned int blue_mask_ = 0;
+    BMPHeader header_{};
+    std::array<std::uint32_t, 3> color_masks_{};
 };
