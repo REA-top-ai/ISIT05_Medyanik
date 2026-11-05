@@ -6,7 +6,7 @@ import bmp;
 import errors;
 
 int main(int argc, char** argv) {
-    const char* path = argc > 1 ? argv[1] : "lena.bmp";
+    const char* path = argc > 1 ? argv[1] : "/Users/egorzelenskij/CLionProjects/ISIT05_Medyanik/BMPReader/lena.bmp";
 
     std::unique_ptr<Image> image = std::make_unique<BMP>();
 
