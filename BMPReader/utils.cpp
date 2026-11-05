@@ -1,6 +1,8 @@
-#include "utils.h"
+module;
 
 #include <fstream>
+
+module utils;
 
 bool load_file_bytes(const char* path, unsigned char* buffer, int size) {
     std::ifstream file(path, std::ios::binary);
@@ -21,4 +23,17 @@ int bytes_to_int32(const unsigned char* bytes) {
 
 int get_brightness(int red, int green, int blue) {
     return 0.299 * red + 0.587 * green + 0.114 * blue;
+}
+
+int extract_channel(unsigned int value, unsigned int mask) {
+    if (mask == 0) {
+        return 0;
+    }
+    int shift = 0;
+    while (((mask >> shift) & 1) == 0) {
+        shift++;
+    }
+    unsigned int max_value = mask >> shift;
+    unsigned int channel = (value & mask) >> shift;
+    return channel * 255 / max_value;
 }

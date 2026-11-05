@@ -1,9 +1,17 @@
-#pragma once
+module;
 
 #include <string>
 
-class BMP {
+export module bmp;
+
+export class BMP {
 public:
+    BMP();
+    explicit BMP(const char* path);
+    BMP(const BMP& other);
+    BMP(BMP&& other) noexcept;
+    ~BMP();
+
     bool open(const char* path);
     void print_headers() const;
     bool read_pixel(int x, int y, int& red, int& green, int& blue) const;
@@ -27,4 +35,8 @@ private:
     int colors_used_ = 0;
     int colors_important_ = 0;
     int abs_height_ = 0;
+
+    unsigned int red_mask_ = 0;
+    unsigned int green_mask_ = 0;
+    unsigned int blue_mask_ = 0;
 };
