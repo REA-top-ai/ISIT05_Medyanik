@@ -1,4 +1,2 @@
-/BMPReader/cmake-build-release-llvm/
-/BMPReader/cmake-build-debug-llvm/
-/List/cmake-build-release-llvm/
-/List/cmake-build-debug-llvm/
+/cmake-build-release-llvm/
+/cmake-build-debug-llvm/
